@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# coding=utf-8
+
 import atexit
 import time
 from dot3k import backlight, joystick
@@ -43,6 +46,6 @@ backlight.left_rgb(255, 0, 0)
 backlight.mid_rgb(255, 0, 255)
 backlight.right_rgb(0, 0, 255)
 
-while 1:
+while True:
     radio.redraw()
     time.sleep(0.2)

@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# coding=utf-8
+
 import os
 import psutil
 import subprocess
@@ -14,7 +17,8 @@ class Radio():
                             "http://stream.hoerradar.de/sunshinelive-mp3-192",
                             "http://rbb-mp3-fritz-m.akacast.akamaistream.net/7/799/292093/v1/gnl.akacast.akamaistream.net/rbb_mp3_fritz_m"]
         self.channelName = ["Radio Lausitz", "MDR Jump", "MDR Sputnik", "Radio Paloma", "Sunshine Live", "Fritz"]
-        self.selected_station = 0
+        self.fileName = '/home/pi/PiRadio/laststation'
+        self.selectedStation = 0
         self.start()
 
     def redraw(self):
@@ -23,7 +27,7 @@ class Radio():
 
         lcd.clear()
         lcd.set_cursor_position(0, 0)
-        lcd.write(self.channelName[self.selected_station])
+        lcd.write(self.channelName[self.selectedStation])
 
         lcd.set_cursor_position(0, 1)
         lcd.write(time.strftime("%d.%m. %H:%M:%S"))
@@ -40,9 +44,22 @@ class Radio():
         for channel in self.channelLink:
             os.system("mpc add " + channel)
 
+    def read_file(self):
+        if os.path.isfile(self.fileName):
+            f = open(self.fileName, 'r')
+            self.selectedStation = int(f.readline().replace('\n', ''))
+            if self.selectedStation >= len(self.channelLink):
+                self.selectedStation = 0
+
+    def write_file(self):
+        f = open(self.fileName, 'w+')
+        f.write(str(self.selectedStation))
+        f.close()
+
     def start(self):
         self.create_playlist()
-        os.system('mpc play 1')
+        self.read_file()
+        os.system('mpc play ' + str(self.selectedStation + 1))
 
     def up(self):
         os.system('mpc volume +5')
@@ -51,19 +68,20 @@ class Radio():
         os.system('mpc volume -5')
 
     def right(self):
-        self.selected_station += 1
-        if self.selected_station >= len(self.channelLink):
-            self.selected_station = 0
+        self.selectedStation += 1
+        if self.selectedStation >= len(self.channelLink):
+            self.selectedStation = 0
         self.play_selected_station()
 
     def left(self):
-        self.selected_station -= 1
-        if self.selected_station < 0:
-            self.selected_station = len(self.channelLink) - 1
+        self.selectedStation -= 1
+        if self.selectedStation < 0:
+            self.selectedStation = len(self.channelLink) - 1
         self.play_selected_station()
 
     def play_selected_station(self):
-        os.system('mpc play ' + str(self.selected_station + 1))
+        self.write_file()
+        os.system('mpc play ' + str(self.selectedStation + 1))
 
     def off(self):
         os.system('mpc stop')
